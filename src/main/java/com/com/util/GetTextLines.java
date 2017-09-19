@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 
 
-class GetTextLines {
+public class GetTextLines {
     int getTextLines(String path) {
         int x = -1;
         try {
