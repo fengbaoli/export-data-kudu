@@ -8,14 +8,6 @@
             <id>cloudera</id>
             <url>https://repository.cloudera.com/artifactory/cloudera-repos/</url>
         </repository>
-        <repository>
-            <id>nexus.local</id>
-            <url>http://10.10.10.7:8081/nexus/content/repositories/thirdparty</url>
-            <name>Nexus Local</name>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
     </repositories>
 
     <groupId>com.export.data.kudu</groupId>
@@ -23,12 +15,15 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <dependencies>
+        <!-- https://mvnrepository.com/artifact/com.oracle/ojdbc6 -->
         <dependency>
-            <groupId>com.oracle</groupId>
+            <groupId>oracle</groupId>
             <artifactId>ojdbc6</artifactId>
-            <version>6.0</version>
+            <version>11.2.0.3</version>
         </dependency>
 
+
+        <!-- https://mvnrepository.com/artifact/org.apache.hadoop/hadoop-common -->
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
@@ -64,40 +59,49 @@
 
 
         <dependency>
-            <groupId>libthrift</groupId>
+            <groupId>org.apache.thrift</groupId>
             <artifactId>libthrift</artifactId>
             <version>0.9.0</version>
+            <type>pom</type>
         </dependency>
+
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
             <version>1.2.14</version>
         </dependency>
+
         <dependency>
             <groupId>ql</groupId>
             <artifactId>ql</artifactId>
             <version>1.0</version>
         </dependency>
         <dependency>
-            <groupId>slf4j-api</groupId>
+            <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.5.11</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12 -->
         <dependency>
-            <groupId>slf4j-log4j12</groupId>
+            <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
             <version>1.5.11</version>
+            <scope>test</scope>
         </dependency>
+
         <dependency>
             <groupId>TCLIServiceClient</groupId>
             <artifactId>TCLIServiceClient</artifactId>
             <version>1.0</version>
         </dependency>
         <dependency>
-            <groupId>ora.apache.zookeeper</groupId>
+            <groupId>org.apache.zookeeper</groupId>
             <artifactId>zookeeper</artifactId>
             <version>3.4.6</version>
+            <type>pom</type>
         </dependency>
+
     </dependencies>
 
     <build>
