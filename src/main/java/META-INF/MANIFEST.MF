@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Main-Class: com.com.util.LoadDataMain
+Manifest-Version: 1.0
+Implementation-Version: 1.0-SNAPSHOT
+Built-By: test
+Build-Jdk: 1.7.0_80

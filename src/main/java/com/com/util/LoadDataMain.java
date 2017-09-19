@@ -17,9 +17,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by Administrator on 2017/9/15.
- */
+
 public class LoadDataMain {
     private static final Logger logger = LoggerFactory.getLogger(LoadDataMain.class);
 
@@ -34,10 +32,11 @@ public class LoadDataMain {
 
         Connection conn = null;
         Statement stmt = null;
-        StringBuffer createextsql = null;
-        StringBuffer createkudusql = null;
+        StringBuilder createextsql = null;
+        StringBuilder createkudusql = null;
         HdfsOp dfsop = new HdfsOp();
-        String sql = "select table_name from user_tables";
+        String sql;
+        sql = "select table_name from user_tables";
         List<String> tabList = new ArrayList<String>();
         ConvertCreateTableSql convertsql = new ConvertCreateTableSql();
         ImpalaTableOp iitc = new ImpalaTableOp();
@@ -75,12 +74,12 @@ public class LoadDataMain {
             }
         }
         //上传csv文件至hdfs指定目录及创建表
-        for (int i = 0; i < tabList.size(); i++) {
+        for (String aTabList : tabList) {
             //创建hdfs存储csv文件目录
-            String tablename = tabList.get(i).toLowerCase();
-            String win_local_filename = TableToCSV.local_path + "\\" + tabList.get(i) + ".csv";
-            String linux_local_filename = TableToCSV.local_path + "/" + tabList.get(i) + ".csv";
-            String hdfs_filename = HdfsOp.HDFS_UPLOAD_PATH + "/" + tablename + "/" + tabList.get(i) + ".csv";
+            String tablename = aTabList.toLowerCase();
+            String win_local_filename = TableToCSV.local_path + "\\" + aTabList + ".csv";
+            String linux_local_filename = TableToCSV.local_path + "/" + aTabList + ".csv";
+            String hdfs_filename = HdfsOp.HDFS_UPLOAD_PATH + "/" + tablename + "/" + aTabList + ".csv";
             try {
                 dfsop.makeDir(HdfsOp.HDFS_UPLOAD_PATH);
             } catch (Exception e) {
@@ -98,12 +97,12 @@ public class LoadDataMain {
 
             //创建外表
             try {
-                createextsql = convertsql.genCreateExtTableSql(tabList.get(i), HdfsOp.HDFS_UPLOAD_PATH + "/" + tablename);
+                createextsql = convertsql.genCreateExtTableSql(aTabList, HdfsOp.HDFS_UPLOAD_PATH + "/" + tablename);
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            boolean issucceed = iitc.createTable(createextsql.toString());
+            boolean issucceed = iitc.createTable(createextsql == null ? null : createextsql.toString());
             if (issucceed) {
                 logger.info("Crate ext table[" + "ext" + tablename + "] succeed");
             } else {
@@ -118,17 +117,13 @@ public class LoadDataMain {
                 e.printStackTrace();
             }
 
-            boolean iscreatekudusucceed = iitc.createTable(createkudusql.toString());
+            boolean iscreatekudusucceed = iitc.createTable(createkudusql == null ? null : createkudusql.toString());
             if (iscreatekudusucceed) {
                 logger.info("Crate kudu table[" + tablename + "] succeed");
                 //删除外表
                 String exttablename = "ext" + tablename.toLowerCase();
                 boolean isdropexttable = iitc.dropExtTable(exttablename);
-                if (iscreatekudusucceed) {
-                    logger.info("Drop impala EXT[" + exttablename + " ] succeed");
-                } else {
-                    logger.error("Drop impala EXT[" + exttablename + " ] failed");
-                }
+                logger.info("Drop impala EXT[" + exttablename + " ] succeed");
 
                 //删除hdfs csv文件
                 try {

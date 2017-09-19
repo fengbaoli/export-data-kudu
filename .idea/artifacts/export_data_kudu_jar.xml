@@ -1,0 +1,22 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="export-data-kudu:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/export_data_kudu_jar</output-path>
+    <root id="archive" name="export-data-kudu.jar">
+      <element id="module-output" name="export-data-kudu" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/oracle/ojdbc6/6.0/ojdbc6-6.0.jar" path-in-jar="/" />
+      <element id="directory" name="hive">
+        <element id="file-copy" path="$PROJECT_DIR$/../test/hive_metastore.jar" />
+        <element id="file-copy" path="$PROJECT_DIR$/../test/hive_service.jar" />
+        <element id="file-copy" path="$PROJECT_DIR$/../test/ImpalaJDBC41.jar" />
+        <element id="file-copy" path="$PROJECT_DIR$/../test/libfb303-0.9.0.jar" />
+        <element id="file-copy" path="$PROJECT_DIR$/../test/libthrift-0.9.0.jar" />
+        <element id="file-copy" path="$PROJECT_DIR$/../test/log4j-1.2.14.jar" />
+        <element id="file-copy" path="$PROJECT_DIR$/../test/ql.jar" />
+        <element id="file-copy" path="$PROJECT_DIR$/../test/slf4j-api-1.5.11.jar" />
+        <element id="file-copy" path="$PROJECT_DIR$/../test/slf4j-log4j12-1.5.11.jar" />
+        <element id="file-copy" path="$PROJECT_DIR$/../test/TCLIServiceClient.jar" />
+        <element id="file-copy" path="$PROJECT_DIR$/../test/zookeeper-3.4.6.jar" />
+      </element>
+    </root>
+  </artifact>
+</component>
