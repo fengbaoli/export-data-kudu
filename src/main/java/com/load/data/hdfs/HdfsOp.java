@@ -11,17 +11,17 @@ import java.io.IOException;
 import java.net.URI;
 
 public class HdfsOp {
+    static EDKProperties pro = new EDKProperties();
+    static final String DFS_NAMESERVERS = pro.loadProperties("dfs.nameservices");
     static final String HA_NAMENODES_VAL_KEY = "dfs.ha.namenodes." + DFS_NAMESERVERS;
+    static final String NAMENODES = pro.loadProperties(HA_NAMENODES_VAL_KEY);
     static final String RPC_ADDRESS1_VAL_KEY = "dfs.namenode.rpc-address." + DFS_NAMESERVERS + "." + NAMENODES.split(",")[0];
     static final String RPC_ADDRESS2_VAL_KEY = "dfs.namenode.rpc-address." + DFS_NAMESERVERS + "." + NAMENODES.split(",")[1];
-    private static final Logger logger = LoggerFactory.getLogger(HdfsOp.class);
-    static EDKProperties pro = new EDKProperties();
     static final String FS_DEFAULTFS = pro.loadProperties("fs.defaultFS");
-    static final String DFS_NAMESERVERS = pro.loadProperties("dfs.nameservices");
-    static final String NAMENODES = pro.loadProperties(HA_NAMENODES_VAL_KEY);
     public static final String HDFS_UPLOAD_PATH = pro.loadProperties("hdfs_path");
     public static final String hdfssuperuser = pro.loadProperties("hdfssuperuser");
     static Configuration conf = new Configuration(true);
+    private static final Logger logger = LoggerFactory.getLogger(HdfsOp.class);
 
     static {
         //指定hadoop fs的地址
@@ -65,7 +65,7 @@ public class HdfsOp {
 
     public void deleteFile(String fileName) throws IOException, InterruptedException {
         logger.info("upload local file:" + fileName + " to hdfs:" + fileName);
-        FileSystem fs = FileSystem.get(URI.create(FS_DEFAULTFS), conf, hdfssuperuser);
+        FileSystem fs = FileSystem.get(URI.create(FS_DEFAULTFS != null ? FS_DEFAULTFS : null), conf, hdfssuperuser);
         Path f = new Path(fileName);
         boolean isExists = fs.exists(f);
         if (isExists) { //if exists, delete
