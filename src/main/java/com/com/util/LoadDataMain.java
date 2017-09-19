@@ -44,7 +44,7 @@ public class LoadDataMain {
         ConvertCreateTableSql convertsql = new ConvertCreateTableSql();
         ImpalaTableOp iitc = new ImpalaTableOp();
         IsTablePk ispk = new IsTablePk();
-
+        GetTextLines getlines = new GetTextLines();
         try {
             conn = new DBConnections(DBConnections.URL, DBConnections.USERNAME, DBConnections.PASSWORD).getConn();
             stmt = conn.createStatement();
@@ -79,9 +79,12 @@ public class LoadDataMain {
         //上传csv文件至hdfs指定目录及创建表
         for (String aTabList : tabList) {
             //创建hdfs存储csv文件目录
+            Date startdate = new Date();
             String tablename = aTabList.toLowerCase();
             String win_local_filename = TableToCSV.local_path + "\\" + aTabList + ".csv";
             String linux_local_filename = TableToCSV.local_path + "/" + aTabList + ".csv";
+            //获取文件行数
+            int filelines = getlines.getTextLines(linux_local_filename);
             String hdfs_filename = HdfsOp.HDFS_UPLOAD_PATH + "/" + tablename + "/" + aTabList + ".csv";
             try {
                 dfsop.makeDir(HdfsOp.HDFS_UPLOAD_PATH);
@@ -139,11 +142,18 @@ public class LoadDataMain {
             } else {
                 logger.error("Crate kudu table[" + tablename + "] failed");
             }
+
+            Date stopdate = new Date();
+            //获取时间差
+            long interval = (stopdate.getTime() - startdate.getTime());
             logger.info("Load table [" + tablename.toLowerCase() + "] data to kudu succeed");
             StringBuilder dsb = new StringBuilder();
             dsb.append(df.format(new Date()));
             dsb.append("  ");
             dsb.append("Load table [").append(tablename.toLowerCase()).append("] data to kudu succeed");
+            dsb.append(",");
+            dsb.append("total rows:");
+            dsb.append(filelines).append(",cost time:").append(interval).append(" s");
             System.out.println(dsb);
         }
     }
