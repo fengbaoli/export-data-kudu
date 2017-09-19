@@ -14,7 +14,9 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
@@ -35,6 +37,7 @@ public class LoadDataMain {
         StringBuilder createextsql = null;
         StringBuilder createkudusql = null;
         HdfsOp dfsop = new HdfsOp();
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
         String sql;
         sql = "select table_name from user_tables";
         List<String> tabList = new ArrayList<String>();
@@ -137,7 +140,11 @@ public class LoadDataMain {
                 logger.error("Crate kudu table[" + tablename + "] failed");
             }
             logger.info("Load table [" + tablename.toLowerCase() + "] data to kudu succeed");
-            System.out.println("Load table [" + tablename.toLowerCase() + "] data to kudu succeed");
+            StringBuilder dsb = new StringBuilder();
+            dsb.append(df.format(new Date()));
+            dsb.append("  ");
+            dsb.append("Load table [").append(tablename.toLowerCase()).append("] data to kudu succeed");
+            System.out.println(dsb);
         }
     }
 }
