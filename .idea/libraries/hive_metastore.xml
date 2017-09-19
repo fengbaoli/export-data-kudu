@@ -1,0 +1,21 @@
+<component name="libraryTable">
+  <library name="hive_metastore">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../test/hive_metastore.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../test/hive_service.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../test/ImpalaJDBC41.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../test/libfb303-0.9.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../test/libthrift-0.9.0.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../test/log4j-1.2.14.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../test/ql.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../test/slf4j-api-1.5.11.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../test/slf4j-log4j12-1.5.11.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../test/TCLIServiceClient.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../test/zookeeper-3.4.6.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/../test/libthrift-0.9.0.jar!/" />
+    </SOURCES>
+  </library>
+</component>
