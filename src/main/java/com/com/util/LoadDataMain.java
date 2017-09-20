@@ -31,11 +31,10 @@ public class LoadDataMain {
     //导出用户表数据到csv文件
 
     public static void main(String args[]) throws IOException {
-
         Connection conn = null;
         Statement stmt = null;
-        StringBuilder createextsql = null;
-        StringBuilder createkudusql = null;
+        ArrayList<String> createextsql;
+        ArrayList<String> createkudusql;
         HdfsOp dfsop = new HdfsOp();
         SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
         String sql;
@@ -44,7 +43,7 @@ public class LoadDataMain {
         ConvertCreateTableSql convertsql = new ConvertCreateTableSql();
         ImpalaTableOp iitc = new ImpalaTableOp();
         IsTablePk ispk = new IsTablePk();
-        GetTextLines getlines = new GetTextLines();
+
         try {
             conn = new DBConnections(DBConnections.URL, DBConnections.USERNAME, DBConnections.PASSWORD).getConn();
             stmt = conn.createStatement();
@@ -62,6 +61,7 @@ public class LoadDataMain {
             //表生成csv文件
             TableToCSV tablecsv = new TableToCSV();
             tablecsv.startTableToCSV(tabList);
+            System.out.println(df.format(new Date()) + " Load all table data to csv succeed\n");
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -76,85 +76,75 @@ public class LoadDataMain {
                 e.printStackTrace();
             }
         }
-        //上传csv文件至hdfs指定目录及创建表
+/*
+创建hdfs上传路径
+ */
+        try {
+            dfsop.makeDir(HdfsOp.HDFS_UPLOAD_PATH);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+/*
+上传csv文件到hdfs
+ */
+        ArrayList<String> linux_local_filenames = new ArrayList<String>();
+        ArrayList<String> hdfs_filenames = new ArrayList<String>();
+        ArrayList<String> tablenames = new ArrayList<String>();
         for (String aTabList : tabList) {
             //创建hdfs存储csv文件目录
             Date startdate = new Date();
             String tablename = aTabList.toLowerCase();
+            tablenames.add(tablename);
             String win_local_filename = TableToCSV.local_path + "\\" + aTabList + ".csv";
             String linux_local_filename = TableToCSV.local_path + "/" + aTabList + ".csv";
+            linux_local_filenames.add(linux_local_filename);
             //获取文件行数
-            int filelines = getlines.getTextLines(linux_local_filename);
             String hdfs_filename = HdfsOp.HDFS_UPLOAD_PATH + "/" + tablename + "/" + aTabList + ".csv";
-            try {
-                dfsop.makeDir(HdfsOp.HDFS_UPLOAD_PATH);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            //上传
-            try {
-                //windowns
-                //dfsop.uploadFile(win_local_filename,hdfs_filename);
-                //linux
-                dfsop.uploadFile(linux_local_filename, hdfs_filename);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            hdfs_filenames.add(hdfs_filename);
+        }
 
-            //创建外表
-            try {
-                createextsql = convertsql.genCreateExtTableSql(aTabList, HdfsOp.HDFS_UPLOAD_PATH + "/" + tablename);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        //上传
+        try {
+            //windowns
+            //dfsop.uploadFile(win_local_filename,hdfs_filename);
+            //linux
+            dfsop.uploadFile(linux_local_filenames, hdfs_filenames);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        //创建外表
+        createextsql = convertsql.genCreateExtTableSql(tablenames, HdfsOp.HDFS_UPLOAD_PATH);
+        iitc.createTable(createextsql);
+        System.out.println(df.format(new Date()) + " create all ext tables succeed\n");
+        //创建kudu表及insert 数据
+        createkudusql = convertsql.genCreateKuduTableSql(DBConnections.USERNAME, tablenames);
+        iitc.createTable(createkudusql);
+        System.out.println(df.format(new Date()) + " create all kudu tables succeed\n");
+        //删除外表
 
-            boolean issucceed = iitc.createTable(createextsql == null ? null : createextsql.toString());
-            if (issucceed) {
-                logger.info("Crate ext table[" + "ext" + tablename + "] succeed");
+        for (String tablename : tablenames) {
+            String exttablename = "ext" + tablename;
+            boolean isdroped = iitc.dropExtTable(exttablename);
+            if (isdroped) {
+                logger.info("drop table [" + exttablename + "] succeed");
+                System.out.println(df.format(new Date()) + " drop table [" + exttablename + "] succeed\n");
             } else {
-                logger.error("Crate ext table[" + "ext" + tablename + "] failed");
-
+                System.out.println(df.format(new Date()) + " drop table [" + exttablename + "] failed\n");
+                logger.error("drop table [" + exttablename + "] failed");
             }
+        }
+        //删除csv文件
+        for (int i = 0; i < hdfs_filenames.size(); i++) {
 
-            //创建kudu表及insert 数据
+
             try {
-                createkudusql = convertsql.genCreateKuduTableSql(DBConnections.USERNAME, tablename);
+                dfsop.deleteFile(hdfs_filenames);
+                System.out.println(df.format(new Date()) + " delete hdfs file [" + hdfs_filenames + "] succeed\n");
             } catch (Exception e) {
+                logger.error(e.getMessage());
                 e.printStackTrace();
             }
-
-            boolean iscreatekudusucceed = iitc.createTable(createkudusql == null ? null : createkudusql.toString());
-            if (iscreatekudusucceed) {
-                logger.info("Crate kudu table[" + tablename + "] succeed");
-                //删除外表
-                String exttablename = "ext" + tablename.toLowerCase();
-                boolean isdropexttable = iitc.dropExtTable(exttablename);
-                logger.info("Drop impala EXT[" + exttablename + " ] succeed");
-
-                //删除hdfs csv文件
-                try {
-                    dfsop.deleteFile(hdfs_filename);
-                } catch (Exception e) {
-                    logger.error("delete file[" + hdfs_filename + "] failed" + e.getMessage(), e);
-                } finally {
-                    logger.info("delete file[" + hdfs_filename + "] succeed");
-                }
-            } else {
-                logger.error("Crate kudu table[" + tablename + "] failed");
-            }
-
-            Date stopdate = new Date();
-            //获取时间差
-            long interval = (stopdate.getTime() - startdate.getTime());
-            logger.info("Load table [" + tablename.toLowerCase() + "] data to kudu succeed");
-            StringBuilder dsb = new StringBuilder();
-            dsb.append(df.format(new Date()));
-            dsb.append("  ");
-            dsb.append("Load table [").append(tablename.toLowerCase()).append("] data to kudu succeed");
-            dsb.append(",");
-            dsb.append("total rows:");
-            dsb.append(filelines).append(",cost time:").append(interval).append(" s");
-            System.out.println(dsb);
         }
     }
 }

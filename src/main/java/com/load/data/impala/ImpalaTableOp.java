@@ -5,24 +5,27 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.Statement;
+import java.util.ArrayList;
 
-/**
- * Created by Administrator on 2017/9/18.
- */
+
 public class ImpalaTableOp {
     final private Logger logger = LoggerFactory.getLogger(ImpalaTableOp.class);
 
-    public boolean createTable(String sql) {
-        boolean flag = false;
+    public void createTable(ArrayList<String> sqls) {
         Connection conn = null;
         Statement stmt = null;
         try {
             conn = new ImpalaDBConnect(ImpalaDBConnect.URL).getConn();
             stmt = conn.createStatement();
-            stmt.execute(sql);
-            conn.setAutoCommit(false);
-            flag = true;
-            logger.info("Crate impala table");
+            for (String sql : sqls) {
+                boolean result = stmt.execute(sql);
+                if (result) {
+                    logger.error("Create impala table failed");
+                    break;
+                }
+                conn.setAutoCommit(false);
+                logger.info("Create impala table");
+            }
         } catch (Exception e) {
             e.printStackTrace();
             logger.error("Crate impala table error " + e.getMessage());
@@ -40,10 +43,10 @@ public class ImpalaTableOp {
                 e.printStackTrace();
                 logger.error("close conn failed!");
             }
-            return flag;
         }
     }
 
+    @SuppressWarnings("ReturnInsideFinallyBlock")
     public boolean dropExtTable(String tablename) {
         boolean flag = false;
         Connection conn = null;
@@ -51,10 +54,9 @@ public class ImpalaTableOp {
         try {
             conn = new ImpalaDBConnect(ImpalaDBConnect.URL).getConn();
             stmt = conn.createStatement();
-            String sql = "drop table " + tablename;
+            String sql = new StringBuilder().append("drop table ").append(tablename).toString();
             stmt.execute(sql);
             conn.setAutoCommit(false);
-            flag = true;
             logger.info("Drop impala ext table");
         } catch (Exception e) {
             e.printStackTrace();
@@ -72,8 +74,9 @@ public class ImpalaTableOp {
             } catch (Exception e) {
                 e.printStackTrace();
                 logger.error("close conn failed!");
+            } finally {
+                return false;
             }
-            return flag;
         }
     }
 
